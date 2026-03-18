@@ -1,2 +1,3 @@
-# Redor-FE
-A restaurant table ordering system with QR code, order management,reservation
+# Redor A restrurant table ordering system
+
+Redor is highly customizable table ordering system with qr code scan functionality.

@@ -1,38 +1,18 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router";
-import SignIn from "./pages/AuthPages/SignIn";
-import SignUp from "./pages/AuthPages/SignUp";
-import NotFound from "./pages/OtherPage/NotFound";
-import UserProfiles from "./pages/UserProfiles";
+import { BrowserRouter as Router } from "react-router";
+import { Suspense } from "react";
 
-import AppLayout from "./layout/AppLayout";
+import AppRoutes from "./routes/AppRoutes";
 import { ScrollToTop } from "./components/common/ScrollToTop";
-import Home from "./pages/Dashboard/Home";
-import Orders from "./pages/Orders/Orders";
-import Reservations from "./pages/Reservations/Reservations";
+import PageLoader from "./components/common/PageLoader";
 
 export default function App() {
   return (
     <>
       <Router>
         <ScrollToTop />
-        <Routes>
-          {/* Dashboard Layout */}
-          <Route element={<AppLayout />}>
-            <Route index path="/" element={<Home />} />
-
-            {/* Others Page */}
-            <Route path="/profile" element={<UserProfiles />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/reservations" element={<Reservations />} />
-          </Route>
-
-          {/* Auth Layout */}
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
-
-          {/* Fallback Route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Suspense fallback={<PageLoader />}>
+          <AppRoutes />
+        </Suspense>
       </Router>
     </>
   );

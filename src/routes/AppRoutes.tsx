@@ -37,6 +37,7 @@ export default function AppRoutes() {
 
       {/* Fallback */}
       <Route path="*" element={<NotFound />} />
+      <Route path="/unauthorized" element={<NotFound />} />
     </Routes>
   );
 }

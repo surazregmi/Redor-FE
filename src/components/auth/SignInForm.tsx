@@ -5,7 +5,6 @@ import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
 import Button from "../ui/button/Button";
-import { SignInFormData } from "@/validations/auth.schema";
 
 interface SignInFormProps {
   register: any;

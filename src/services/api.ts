@@ -1,57 +1,42 @@
 import axios from "axios";
-import {
-  getAccessToken,
-  getRefreshToken,
-  setTokens,
-  clearTokens,
-} from "../utils/tokenHelpers";
-import { useAuthStore } from "../store/authStore";
-
+import { useAuthStore } from "@/store/authStore";
 import { env } from "@/config/env";
+import type { ApiResponse, RefreshTokenResponse } from "@/types/auth.types";
 
 const api = axios.create({
-  baseURL: env.API_BASE_URL || "http://localhost:5000/api", // TODO:  replace later
+  baseURL: env.API_BASE_URL,
 });
 
-// Attach token
 api.interceptors.request.use((config) => {
-  const token = getAccessToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const { accessToken } = useAuthStore.getState();
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
   }
   return config;
 });
 
-//  Handle refresh token
 api.interceptors.response.use(
   (res) => res,
   async (err) => {
     const originalRequest = err.config;
+    const isAuthEndpoint = originalRequest?.url?.includes("/auth/");
 
-    if (err.response?.status === 401 && !originalRequest._retry) {
+    if (err.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       originalRequest._retry = true;
 
       try {
-        const refreshToken = getRefreshToken();
+        const { refreshToken, setAuth, user } = useAuthStore.getState();
 
-        const response = await axios.post(`${env.API_BASE_URL}/auth/refresh`, {
-          refreshToken,
-        });
+        const { data } = await axios.post<ApiResponse<RefreshTokenResponse>>(
+          `${env.API_BASE_URL}/auth/refresh`,
+          { refreshToken },
+        );
 
-        const { accessToken, refreshToken: newRefresh } = response.data;
+        setAuth({ user: user!, accessToken: data.data.accessToken, refreshToken: data.data.refreshToken });
 
-        setTokens(accessToken, newRefresh);
-
-        useAuthStore.getState().setAuth({
-          user: useAuthStore.getState().user,
-          accessToken,
-          refreshToken: newRefresh,
-        });
-
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${data.data.accessToken}`;
         return api(originalRequest);
-      } catch (error) {
-        clearTokens();
+      } catch {
         useAuthStore.getState().logout();
         window.location.href = "/signin";
       }

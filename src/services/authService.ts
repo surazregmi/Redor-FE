@@ -1,17 +1,18 @@
 import api from "./api";
+import { useAuthStore } from "@/store/authStore";
+import type { SignInFormData } from "@/validations/auth.schema";
+import type { ApiResponse, SignInResponse } from "@/types/auth.types";
 
-// 🔹 Mock for now
-export const loginUser = async (username: string, password: string) => {
-  if (username === "admin" && password === "password") {
-    return {
-      user: { id: 1, name: "Admin", role: "admin" },
-      accessToken: "mock-access-token",
-      refreshToken: "mock-refresh-token",
-    };
-  } else {
-    throw new Error("Invalid credentials");
+export async function signIn(data: SignInFormData): Promise<SignInResponse> {
+  const response = await api.post<ApiResponse<SignInResponse>>("/auth/signin", data);
+  return response.data.data;
+}
+
+export async function signOut(): Promise<void> {
+  const { refreshToken } = useAuthStore.getState();
+  try {
+    await api.post("/auth/signout", { refreshToken });
+  } finally {
+    useAuthStore.getState().logout();
   }
-};
-
-// 🔹 Later replace with:
-// return api.post("/auth/login", { username, password });
+}

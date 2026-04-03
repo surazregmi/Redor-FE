@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router";
 import PageMeta from "../../components/common/PageMeta";
 import AuthLayout from "./AuthPageLayout";
 import SignInForm from "../../components/auth/SignInForm";
@@ -5,16 +6,22 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signInSchema, SignInFormData } from "@/validations/auth.schema";
 import { toast } from "@/components/toast/useToast";
+import { signIn } from "@/services/authService";
+import { useAuthStore } from "@/store/authStore";
+import { getApiErrorMessage } from "@/utils/apiError";
 
 export default function SignIn() {
+  const navigate = useNavigate();
+  const setAuth = useAuthStore((state) => state.setAuth);
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
-    mode: "onBlur", // Validates on blur - best performance
-    reValidateMode: "onChange", // Re-validates on change after blur
+    mode: "onBlur",
+    reValidateMode: "onChange",
     defaultValues: {
       email: "",
       password: "",
@@ -22,21 +29,27 @@ export default function SignIn() {
   });
 
   const onSubmit = async (data: SignInFormData) => {
-    console.log("Valid Data:", data);
-
-    // simulate API
-    // await new Promise((res) => setTimeout(res, 1000));
+    try {
+      const response = await signIn(data);
+      setAuth(response);
+      toast.success("Welcome back!");
+      navigate("/");
+    } catch (error) {
+      toast.error(
+        getApiErrorMessage(error, "Sign in failed. Please try again."),
+      );
+    }
   };
 
   const handleGoogleLogin = () => {
-    toast.warning("This feature is comming soon.");
+    toast.warning("This feature is coming soon.");
   };
 
   return (
     <>
       <PageMeta
         title="Redor Sign in"
-        description="This is Signin  page of Redor"
+        description="This is Signin page of Redor"
       />
       <AuthLayout>
         <SignInForm

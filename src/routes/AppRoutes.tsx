@@ -17,6 +17,9 @@ const SignUp = lazy(() => import("@/pages/AuthPages/SignUp"));
 const NotFound = lazy(() => import("@/pages/OtherPage/NotFound"));
 
 import { ROUTES } from "./routePaths";
+import Users from "@/pages/Admin/user-managment/Users";
+import RoleManagement from "@/pages/Admin/role-management/RoleManagement";
+import PermissionsManagement from "@/pages/Admin/permissions-management/PermissionsMangement";
 
 export default function AppRoutes() {
   return (
@@ -28,6 +31,17 @@ export default function AppRoutes() {
           <Route path={ROUTES.PROFILE} element={<UserProfiles />} />
           <Route path={ROUTES.ORDERS} element={<Orders />} />
           <Route path={ROUTES.RESERVATIONS} element={<Reservations />} />
+
+          {/* Admin Panel */}
+
+          <Route path={ROUTES.USER_MANAGEMENT} element={<Users />} />
+          <Route path={ROUTES.ROLE_MANAGEMENT} element={<RoleManagement />} />
+          <Route
+            path={ROUTES.PERMISSIONS}
+            element={<PermissionsManagement />}
+          />
+          <Route path={ROUTES.TENANT_PLANS} element={<Users />} />
+          <Route path={ROUTES.TENANTS} element={<Users />} />
         </Route>
       </Route>
 

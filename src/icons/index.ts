@@ -54,6 +54,8 @@ import { ReactComponent as ChatIcon } from "./chat.svg?react";
 import { ReactComponent as MoreDotIcon } from "./moredot.svg?react";
 import { ReactComponent as AlertHexaIcon } from "./alert-hexa.svg?react";
 import { ReactComponent as ErrorHexaIcon } from "./info-hexa.svg?react";
+import { ReactComponent as PlusCircleIcon } from "./plus-circle.svg?react";
+
 
 export {
   ErrorHexaIcon,
@@ -66,6 +68,7 @@ export {
   VideoIcon,
   BoltIcon,
   PlusIcon,
+  PlusCircleIcon,
   BoxIcon,
   CloseIcon,
   CheckCircleIcon,

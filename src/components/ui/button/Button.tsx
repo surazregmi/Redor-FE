@@ -9,6 +9,8 @@ interface ButtonProps {
   onClick?: () => void; // Click handler
   disabled?: boolean; // Disabled state
   className?: string; // Disabled state
+  type?: "button" | "submit" | "reset";
+  title?: string;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -20,6 +22,8 @@ const Button: React.FC<ButtonProps> = ({
   onClick,
   className = "",
   disabled = false,
+  type = "button",
+  title,
 }) => {
   // Size Classes
   const sizeClasses = {
@@ -42,6 +46,8 @@ const Button: React.FC<ButtonProps> = ({
       } ${variantClasses[variant]} ${
         disabled ? "cursor-not-allowed opacity-50" : ""
       }`}
+      type={type}
+      title={title}
       onClick={onClick}
       disabled={disabled}
     >

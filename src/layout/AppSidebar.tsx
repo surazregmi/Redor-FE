@@ -51,7 +51,13 @@ const othersItems: NavItem[] = [
   {
     icon: <PlugInIcon />,
     name: "Admin Panel",
-    subItems: [{ name: "User management", path: "/", pro: false }],
+    subItems: [
+      { name: "User management", path: "/user-management", pro: false },
+      { name: "Role management", path: "/role-management", pro: false },
+      { name: "Permission management", path: "/permissions", pro: false },
+      { name: "Tenant Plans", path: "/tenant-plans", pro: false },
+      { name: "Tenants Management", path: "/tenants", pro: false },
+    ],
   },
 ];
 

@@ -33,6 +33,7 @@ import {
 import { getApiErrorMessage } from "@/utils/apiError";
 
 import { PAGE_SIZE_DEFAULT } from "@/utils/constants";
+import CreateUpdateUserModal from "./CreateUpdateUserModal";
 
 // ─── Column definitions ───────────────────────────────────────────────────────
 // Defined outside the component — stable reference, never triggers re-renders.
@@ -51,7 +52,6 @@ function buildColumns(
       key: "firstName",
       header: "Name",
       sortable: true,
-      filterable: true,
       render: (_val, row) => {
         const initials =
           `${row.firstName[0] ?? ""}${row.lastName[0] ?? ""}`.toUpperCase();
@@ -71,7 +71,6 @@ function buildColumns(
       key: "email",
       header: "Email",
       sortable: true,
-      filterable: true,
     },
     {
       key: "userTenantRoles",
@@ -138,112 +137,6 @@ function buildColumns(
       ),
     },
   ];
-}
-
-// ─── Edit Modal ───────────────────────────────────────────────────────────────
-
-interface EditModalProps {
-  user: AdminUser;
-  onClose: () => void;
-  onSuccess: () => void;
-}
-
-function EditUserModal({ user, onClose, onSuccess }: EditModalProps) {
-  const {
-    register,
-    handleSubmit,
-    control,
-    formState: { errors, isSubmitting },
-  } = useForm<UpdateUserFormData>({
-    resolver: zodResolver(updateUserSchema),
-    mode: "onBlur",
-    reValidateMode: "onChange",
-    defaultValues: {
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      isActive: user.isActive,
-    },
-  });
-
-  const onSubmit = async (data: UpdateUserFormData) => {
-    try {
-      await updateUser(user.id, data);
-      toast.success("User updated successfully");
-      onSuccess();
-      onClose();
-    } catch (error) {
-      console.log("i am here on error section");
-      alert(getApiErrorMessage(error, "Update failed. Please try again."));
-    }
-  };
-
-  return (
-    <Modal isOpen onClose={onClose} className="max-w-md p-6 sm:p-8">
-      <h2 className="mb-6 text-xl font-semibold text-gray-800 dark:text-white/90">
-        Edit User
-      </h2>
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="firstName">First Name</Label>
-            <Input
-              id="firstName"
-              placeholder="First name"
-              error={!!errors.firstName}
-              hint={errors.firstName?.message}
-              {...register("firstName")}
-            />
-          </div>
-          <div>
-            <Label htmlFor="lastName">Last Name</Label>
-            <Input
-              id="lastName"
-              placeholder="Last name"
-              error={!!errors.lastName}
-              hint={errors.lastName?.message}
-              {...register("lastName")}
-            />
-          </div>
-        </div>
-
-        <div>
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="user@example.com"
-            error={!!errors.email}
-            hint={errors.email?.message}
-            {...register("email")}
-          />
-        </div>
-
-        <div>
-          <Controller
-            name="isActive"
-            control={control}
-            render={({ field }) => (
-              <Switch
-                label="Active"
-                defaultChecked={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
-        </div>
-
-        <div className="flex justify-end gap-3 pt-2">
-          <Button type="button" variant="outline" size="sm" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" size="sm" disabled={isSubmitting}>
-            {isSubmitting ? "Saving…" : "Save Changes"}
-          </Button>
-        </div>
-      </form>
-    </Modal>
-  );
 }
 
 // ─── Delete Confirmation Modal ────────────────────────────────────────────────
@@ -388,6 +281,28 @@ export default function Users() {
     });
   }, [page, pageSize, sort, filters, fetchUsers]);
 
+  const handleCreateuser = () => {
+    console.log("I am clicked");
+  };
+
+  const handleUserUpdate = async (data: UpdateUserFormData) => {
+    if (!editTarget) {
+      return;
+    }
+    try {
+      await updateUser(editTarget?.id, data);
+      toast.success("User updated successfully");
+    } catch (error) {
+      console.log("i am here on error section");
+      toast.error(
+        getApiErrorMessage(error, "Update failed. Please try again."),
+      );
+    } finally {
+      refetch();
+      setEditTarget(null);
+    }
+  };
+
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
@@ -400,6 +315,7 @@ export default function Users() {
             size="sm"
             variant="primary"
             title="Create user endpoint not yet available"
+            onClick={handleCreateuser}
           >
             + Create User
           </Button>
@@ -423,10 +339,10 @@ export default function Users() {
       </div>
 
       {editTarget && (
-        <EditUserModal
+        <CreateUpdateUserModal
           user={editTarget}
           onClose={() => setEditTarget(null)}
-          onSuccess={refetch}
+          onSubmit={handleUserUpdate}
         />
       )}
 

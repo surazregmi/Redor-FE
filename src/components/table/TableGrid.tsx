@@ -1,11 +1,4 @@
-import {
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { memo, useCallback, useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -15,8 +8,6 @@ import {
 } from "@/components/ui/table";
 import type {
   AnyRecord,
-  ColumnDef,
-  FilterState,
   PaginationState,
   SortState,
   TableGridProps,
@@ -168,8 +159,7 @@ const Pagination = memo(function Pagination({
 
           {Array.from({ length: totalPages }, (_, i) => i + 1)
             .filter(
-              (p) =>
-                p === 1 || p === totalPages || Math.abs(p - page) <= 1,
+              (p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1,
             )
             .reduce<(number | "…")[]>((acc, p, idx, arr) => {
               if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("…");
@@ -226,7 +216,6 @@ const Pagination = memo(function Pagination({
 
 const DEFAULT_PAGE_SIZE_OPTIONS = [10, 25, 50];
 const SKELETON_ROW_COUNT = 5;
-const FILTER_DEBOUNCE_MS = 300;
 
 function TableGridInner<TData extends AnyRecord>({
   columns,
@@ -239,37 +228,8 @@ function TableGridInner<TData extends AnyRecord>({
   onPageSizeChange,
   sort,
   onSortChange,
-  filters = {},
-  onFilterChange,
   emptyMessage = "No data available",
 }: TableGridProps<TData>) {
-  // ── Local filter state (debounced before calling onFilterChange) ──────────
-  const [localFilters, setLocalFilters] = useState<FilterState>(filters);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
-
-  // Keep local state in sync when parent resets filters
-  useEffect(() => {
-    setLocalFilters(filters ?? {});
-  }, [filters]);
-
-  // Cleanup debounce timer on unmount
-  useEffect(() => () => clearTimeout(debounceRef.current), []);
-
-  // ── Handlers ──────────────────────────────────────────────────────────────
-
-  const handleFilterChange = useCallback(
-    (key: string, value: string) => {
-      const updated: FilterState = { ...localFilters, [key]: value };
-      setLocalFilters(updated);
-      clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(
-        () => onFilterChange?.(updated),
-        FILTER_DEBOUNCE_MS,
-      );
-    },
-    [localFilters, onFilterChange],
-  );
-
   const handleSort = useCallback(
     (key: string) => {
       if (!onSortChange) return;
@@ -288,13 +248,6 @@ function TableGridInner<TData extends AnyRecord>({
       return (row[rowKey as keyof TData] as string | number) ?? index;
     },
     [rowKey],
-  );
-
-  // ── Derived values ────────────────────────────────────────────────────────
-
-  const hasFilterRow = useMemo(
-    () => onFilterChange != null && columns.some((c) => c.filterable),
-    [columns, onFilterChange],
   );
 
   const totalPages = useMemo(
@@ -350,27 +303,6 @@ function TableGridInner<TData extends AnyRecord>({
                 </TableCell>
               ))}
             </TableRow>
-
-            {/* Filter row — only rendered when at least one column is filterable */}
-            {hasFilterRow && (
-              <TableRow>
-                {columns.map((col) => (
-                  <TableCell key={col.key} isHeader className="px-4 py-2">
-                    {col.filterable ? (
-                      <input
-                        type="text"
-                        value={localFilters[col.key] ?? ""}
-                        onChange={(e) =>
-                          handleFilterChange(col.key, e.target.value)
-                        }
-                        placeholder={`Filter ${col.header}`}
-                        className="w-full rounded border border-gray-200 bg-transparent px-2 py-1 text-xs text-gray-600 placeholder-gray-400 outline-none focus:border-brand-500 dark:border-white/10 dark:text-gray-300 dark:placeholder-gray-600"
-                      />
-                    ) : null}
-                  </TableCell>
-                ))}
-              </TableRow>
-            )}
           </TableHeader>
 
           {/* ── Body ─────────────────────────────────────────────────────── */}

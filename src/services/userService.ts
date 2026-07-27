@@ -16,7 +16,9 @@ export interface ListUsersParams {
 export async function listUsers(
   params: ListUsersParams = {},
 ): Promise<UserListResponse> {
-  const response = await api.get<ApiResponse<UserListResponse>>("/user",{params});
+  const response = await api.get<ApiResponse<UserListResponse>>("/user", {
+    params,
+  });
   return response.data.data;
 }
 

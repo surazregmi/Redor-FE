@@ -1,16 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import PageMeta from "@/components/common/PageMeta";
 import TableGrid from "@/components/table/TableGrid";
 import Badge from "@/components/ui/badge/Badge";
 import { Modal } from "@/components/ui/modal";
 import Button from "@/components/ui/button/Button";
-import Input from "@/components/form/input/InputField";
-import Label from "@/components/form/Label";
-import Switch from "@/components/form/switch/Switch";
+
 import { toast } from "@/components/toast/useToast";
 import type {
   ColumnDef,
@@ -25,9 +20,8 @@ import {
   deleteUser,
   type ListUsersParams,
 } from "@/services/userService";
-import type { AdminUser } from "@/types/user.types";
+import type { User } from "@/types/user.types";
 import {
-  updateUserSchema,
   type UpdateUserFormData,
 } from "@/validations/user.schema";
 import { getApiErrorMessage } from "@/utils/apiError";
@@ -40,13 +34,13 @@ import CreateUpdateUserModal from "./CreateUpdateUserModal";
 // onEdit / onDelete are injected via a mutable ref to avoid column redefinition.
 
 type ActionHandlers = {
-  onEdit: (user: AdminUser) => void;
-  onDelete: (user: AdminUser) => void;
+  onEdit: (user: User) => void;
+  onDelete: (user: User) => void;
 };
 
 function buildColumns(
   handlers: React.RefObject<ActionHandlers>,
-): ColumnDef<AdminUser>[] {
+): ColumnDef<User>[] {
   return [
     {
       key: "firstName",
@@ -142,7 +136,7 @@ function buildColumns(
 // ─── Delete Confirmation Modal ────────────────────────────────────────────────
 
 interface DeleteModalProps {
-  user: AdminUser;
+  user: User;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -200,9 +194,11 @@ function DeleteUserModal({ user, onClose, onSuccess }: DeleteModalProps) {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function Users() {
-  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [isEditMode, setisEditMode] =useState(false);
+  const [isModalOpen,setIsModalOpen]=useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE_DEFAULT);
   const [sort, setSort] = useState<SortState>({
@@ -211,18 +207,24 @@ export default function Users() {
   });
   const [filters, setFilters] = useState<FilterState>({});
 
-  const [editTarget, setEditTarget] = useState<AdminUser | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
+  const [editTarget, setEditTarget] = useState<User | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
 
   // Mutable ref so column defs are created once and never redefined
   const handlersRef = useRef<ActionHandlers>({
-    onEdit: (user) => setEditTarget(user),
+    onEdit: (user) => {setEditTarget(user);
+      setIsModalOpen(true);
+      setisEditMode(true);
+    },
     onDelete: (user) => setDeleteTarget(user),
   });
 
   // Keep handlers up to date without recreating columns
   handlersRef.current = {
-    onEdit: (user) => setEditTarget(user),
+    onEdit: (user) => {setEditTarget(user);
+      setIsModalOpen(true);
+      setisEditMode(true);
+    },
     onDelete: (user) => setDeleteTarget(user),
   };
 
@@ -281,27 +283,36 @@ export default function Users() {
     });
   }, [page, pageSize, sort, filters, fetchUsers]);
 
-  const handleCreateuser = () => {
-    console.log("I am clicked");
+  const openCreateUserModal = () => {
+    setIsModalOpen(true);
+    setisEditMode(false);
   };
 
+
   const handleUserUpdate = async (data: UpdateUserFormData) => {
-    if (!editTarget) {
+    if (!editTarget && !isEditMode) {
+      console.log("add mode",data)
       return;
     }
     try {
-      await updateUser(editTarget?.id, data);
+      await updateUser(editTarget!.id, data);
       toast.success("User updated successfully");
     } catch (error) {
-      console.log("i am here on error section");
       toast.error(
         getApiErrorMessage(error, "Update failed. Please try again."),
       );
     } finally {
       refetch();
+      setIsModalOpen(false);
       setEditTarget(null);
     }
   };
+
+  const handleModalClose =()=>{
+     setIsModalOpen(false);
+      setEditTarget(null);
+      setDeleteTarget(null);
+  }
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -315,13 +326,13 @@ export default function Users() {
             size="sm"
             variant="primary"
             title="Create user endpoint not yet available"
-            onClick={handleCreateuser}
+            onClick={openCreateUserModal}
           >
             + Create User
           </Button>
         </div>
 
-        <TableGrid<AdminUser>
+        <TableGrid<User>
           columns={columns}
           data={users}
           loading={loading}
@@ -338,10 +349,10 @@ export default function Users() {
         />
       </div>
 
-      {editTarget && (
+      {isModalOpen && (
         <CreateUpdateUserModal
-          user={editTarget}
-          onClose={() => setEditTarget(null)}
+          user={editTarget|| null}
+          onClose={handleModalClose}
           onSubmit={handleUserUpdate}
         />
       )}
@@ -349,7 +360,7 @@ export default function Users() {
       {deleteTarget && (
         <DeleteUserModal
           user={deleteTarget}
-          onClose={() => setDeleteTarget(null)}
+          onClose={handleModalClose}
           onSuccess={refetch}
         />
       )}

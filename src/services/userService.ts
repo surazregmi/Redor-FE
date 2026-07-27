@@ -1,9 +1,10 @@
 import api from "@/services/api";
 import type { ApiResponse } from "@/types/auth.types";
 import type {
-  AdminUser,
+  User,
   UserListResponse,
   UpdateUserPayload,
+  AddUserPayload,
 } from "@/types/user.types";
 
 export interface ListUsersParams {
@@ -22,17 +23,27 @@ export async function listUsers(
   return response.data.data;
 }
 
-export async function getUserById(userId: string): Promise<AdminUser> {
-  const response = await api.get<ApiResponse<AdminUser>>(`/user/${userId}`);
+export async function getUserById(userId: string): Promise<User> {
+  const response = await api.get<ApiResponse<User>>(`/user/${userId}`);
   return response.data.data;
 }
 
 export async function updateUser(
   userId: string,
   payload: UpdateUserPayload,
-): Promise<AdminUser> {
-  const response = await api.patch<ApiResponse<AdminUser>>(
+): Promise<User> {
+  const response = await api.patch<ApiResponse<User>>(
     `/user/${userId}`,
+    payload,
+  );
+  return response.data.data;
+}
+
+export async function createUser(
+  payload: AddUserPayload,
+): Promise<User> {
+  const response = await api.post<ApiResponse<User>>(
+    `/user`,
     payload,
   );
   return response.data.data;

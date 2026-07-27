@@ -9,10 +9,10 @@ import {
   type UpdateUserFormData,
 } from "@/validations/user.schema";
 import { Modal } from "@/components/ui/modal";
-import { AdminUser } from "@/types/user.types";
+import { User } from "@/types/user.types";
 
 interface UserModalProps {
-  user: AdminUser | undefined;
+  user: User | null;
   onClose: () => void;
   onSubmit: (data: UpdateUserFormData) => Promise<void>;
 }
@@ -37,7 +37,7 @@ function CreateUpdateUserModal({ user, onClose, onSubmit }: UserModalProps) {
   return (
     <Modal isOpen onClose={onClose} className="max-w-md p-6 sm:p-8">
       <h2 className="mb-6 text-xl font-semibold text-gray-800 dark:text-white/90">
-        Edit User
+       {user? 'Edit User':'Add User'}
       </h2>
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
         <div className="grid grid-cols-2 gap-4">

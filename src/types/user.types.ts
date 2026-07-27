@@ -7,7 +7,7 @@ export interface UserTenantRole {
   };
 }
 
-export interface AdminUser {
+export interface User {
   id: string;
   email: string;
   firstName: string;
@@ -23,7 +23,7 @@ export interface AdminUser {
 }
 
 export interface UserListResponse {
-  users: AdminUser[];
+  users: User[];
   total: number;
   page: number;
   limit: number;
@@ -34,4 +34,11 @@ export interface UpdateUserPayload {
   lastName?: string;
   email?: string;
   isActive?: boolean;
+}
+export interface AddUserPayload {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    roleId: number;
 }

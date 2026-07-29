@@ -4,6 +4,11 @@ export interface Role {
   description: string;
 }
 
+export interface RoleSelectInput {
+  key: string;
+  value: string;
+}
+
 export interface UserRolesResponse {
   roles: Role[];
   total: number;

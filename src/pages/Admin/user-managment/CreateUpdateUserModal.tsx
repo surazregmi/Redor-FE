@@ -5,36 +5,72 @@ import Label from "@/components/form/Label";
 import Switch from "@/components/form/switch/Switch";
 import Button from "@/components/ui/button/Button";
 import {
+  CreateUserFormData,
+  createUserSchema,
   updateUserSchema,
+  UserFormData,
   type UpdateUserFormData,
 } from "@/validations/user.schema";
 import { Modal } from "@/components/ui/modal";
 import { User } from "@/types/user.types";
 import Select from "@/components/form/Select";
+import { useCallback, useEffect, useState } from "react";
+import { listUserRoles } from "@/services/userRolesService";
+import { Role, RoleSelectInput } from "@/types/userRoles.types";
+import { toast } from "@/components/toast/useToast";
 
 interface UserModalProps {
   user: User | null;
   onClose: () => void;
-  onSubmit: (data: UpdateUserFormData) => Promise<void>;
+  onSubmit: (data: UserFormData) => Promise<void>;
 }
 
 function CreateUpdateUserModal({ user, onClose, onSubmit }: UserModalProps) {
+  const isEdit = !!user;
   const {
     register,
     handleSubmit,
     control,
     formState: { errors, isSubmitting },
-  } = useForm<UpdateUserFormData>({
-    resolver: zodResolver(updateUserSchema),
+  } = useForm<UserFormData>({
+    resolver: zodResolver(isEdit ? updateUserSchema : createUserSchema),
     mode: "onBlur",
     reValidateMode: "onChange",
     defaultValues: {
       firstName: user?.firstName || "",
       lastName: user?.lastName || "",
       email: user?.email || "",
+      password: "",
+      roleId: user?.userTenantRoles[0]?.role?.id ?? 5,
       isActive: user?.isActive || true,
     },
   });
+
+  const [loading, setLoading] = useState(false);
+
+  const [roles, setRoles] = useState<RoleSelectInput[]>([]);
+
+  const convertDataForSelectOptions = (roles: Role[]) => {
+    return roles?.map((item) => ({ key: item?.id, value: item?.name }));
+  };
+
+  const fetchUserRoles = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await listUserRoles();
+      let roleValueForSelect = convertDataForSelectOptions(data?.roles);
+      setRoles(roleValueForSelect);
+    } catch {
+      toast.error("Failed to load users. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUserRoles();
+  }, []);
+
   return (
     <Modal isOpen onClose={onClose} className="max-w-md p-6 sm:p-8">
       <h2 className="mb-6 text-xl font-semibold text-gray-800 dark:text-white/90">
@@ -63,7 +99,17 @@ function CreateUpdateUserModal({ user, onClose, onSubmit }: UserModalProps) {
             />
           </div>
         </div>
-
+        {!isEdit && (
+          <div>
+            <Label>Password</Label>
+            <Input
+              type="password"
+              {...register("password")}
+              error={!!errors.password}
+              hint={errors.password?.message}
+            />
+          </div>
+        )}
         <div>
           <Label htmlFor="email">Email</Label>
           <Input
@@ -76,15 +122,23 @@ function CreateUpdateUserModal({ user, onClose, onSubmit }: UserModalProps) {
           />
         </div>
 
-        {/* <div>
-          <Label>Select Input</Label>
-          <Select
-            options={options}
-            placeholder="Select Option"
-            onChange={handleSelectChange}
-            className="dark:bg-dark-900"
+        <div>
+          <Controller
+            name="roleId"
+            control={control}
+            render={({ field }) => (
+              <>
+                <Label>User Role</Label>
+                <Select
+                  options={roles}
+                  placeholder="Select Role"
+                  defaultValue={field.value?.toString()}
+                  onChange={(value) => field.onChange(Number(value))}
+                />
+              </>
+            )}
           />
-        </div> */}
+        </div>
 
         <div>
           <Controller

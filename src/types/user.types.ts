@@ -36,9 +36,9 @@ export interface UpdateUserPayload {
   isActive?: boolean;
 }
 export interface AddUserPayload {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    roleId: number;
+  email: string;
+  password?: string | undefined;
+  firstName: string;
+  lastName: string;
+  roleId: number;
 }

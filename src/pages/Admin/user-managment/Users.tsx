@@ -19,9 +19,12 @@ import {
   updateUser,
   deleteUser,
   type ListUsersParams,
+  createUser,
 } from "@/services/userService";
 import type { User } from "@/types/user.types";
 import {
+  CreateUserFormData,
+  UserFormData,
   type UpdateUserFormData,
 } from "@/validations/user.schema";
 import { getApiErrorMessage } from "@/utils/apiError";
@@ -197,8 +200,8 @@ export default function Users() {
   const [users, setUsers] = useState<User[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [isEditMode, setisEditMode] =useState(false);
-  const [isModalOpen,setIsModalOpen]=useState(false);
+  const [isEditMode, setisEditMode] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE_DEFAULT);
   const [sort, setSort] = useState<SortState>({
@@ -212,7 +215,8 @@ export default function Users() {
 
   // Mutable ref so column defs are created once and never redefined
   const handlersRef = useRef<ActionHandlers>({
-    onEdit: (user) => {setEditTarget(user);
+    onEdit: (user) => {
+      setEditTarget(user);
       setIsModalOpen(true);
       setisEditMode(true);
     },
@@ -221,7 +225,8 @@ export default function Users() {
 
   // Keep handlers up to date without recreating columns
   handlersRef.current = {
-    onEdit: (user) => {setEditTarget(user);
+    onEdit: (user) => {
+      setEditTarget(user);
       setIsModalOpen(true);
       setisEditMode(true);
     },
@@ -288,12 +293,23 @@ export default function Users() {
     setisEditMode(false);
   };
 
-
-  const handleUserUpdate = async (data: UpdateUserFormData) => {
-    if (!editTarget && !isEditMode) {
-      console.log("add mode",data)
-      return;
+  const handleUserCreate = async (data: UserFormData) => {
+    console.log("user create data ", data);
+    try {
+      await createUser(data);
+      toast.success("User Created successfully");
+    } catch (error) {
+      toast.error(
+        getApiErrorMessage(error, "User creation failed. Please try again."),
+      );
+    } finally {
+      refetch();
+      setIsModalOpen(false);
     }
+  };
+
+  const handleUserUpdate = async (data: UserFormData) => {
+    console.log("user edit data", data);
     try {
       await updateUser(editTarget!.id, data);
       toast.success("User updated successfully");
@@ -308,11 +324,11 @@ export default function Users() {
     }
   };
 
-  const handleModalClose =()=>{
-     setIsModalOpen(false);
-      setEditTarget(null);
-      setDeleteTarget(null);
-  }
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setEditTarget(null);
+    setDeleteTarget(null);
+  };
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -351,9 +367,9 @@ export default function Users() {
 
       {isModalOpen && (
         <CreateUpdateUserModal
-          user={editTarget|| null}
+          user={editTarget || null}
           onClose={handleModalClose}
-          onSubmit={handleUserUpdate}
+          onSubmit={isEditMode ? handleUserUpdate : handleUserCreate}
         />
       )}
 

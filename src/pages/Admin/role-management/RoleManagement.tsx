@@ -1,3 +1,39 @@
+//new design for role management - in progress
+
+// import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+// import PageMeta from "@/components/common/PageMeta";
+
+// export default function RoleManagement()  {
+//   return (
+//        <>
+//       <PageMeta title="Role Management" description="Role management section" />
+//       <PageBreadcrumb pageTitle="Role Mangement" />
+//      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+//       <div className="max-w-full overflow-x-auto flex flex-col md:flex-row ">
+
+//         <div className="w-full md:w-1/5  border-r-2 border-gray-200  bg-slate-50  dark:border-white/[0.05] dark:bg-white/[0.02] dark:text-white p-4 ">
+//         <div className="text-gray-500 text-sm mb-2">ROLES</div>
+        
+//         <div className="p-2 cursor-pointers">Super Admin</div>
+//          <div className="p-2 cursor-pointers">Admin</div>
+//          <div className="p-2 cursor-pointers">Manager</div>
+//           <div className="p-2 cursor-pointers">Viewer</div>
+
+        
+//         </div>
+//         <div className="w-full md:w-4/5 bg-white dark:border-white/[0.06] dark:bg-white/[0.05] dark:text-white p-4 ">right content</div>
+
+//         </div>
+       
+//       </div>
+//     </>
+//   );
+// }
+
+
+
+
+
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import PageMeta from "@/components/common/PageMeta";
 import TableGrid from "@/components/table/TableGrid";
